@@ -70,7 +70,9 @@ const server = createServer(async (req, res) => {
   if (mode === 'hang-mutation') return;
   pending = 2;
   if (req.url === '/api/v1/mine') height += JSON.parse(body).blocks;
-  if (mode === 'api-error') { res.writeHead(500); res.end('{"error":"fixture mutation failed"}'); return; }
+  if (mode === 'api-error') {
+    res.writeHead(400); res.end('{"error":{"message":"fixture mutation rejected","status":400}}'); return;
+  }
   res.end('{}');
 });
 server.listen(0, '127.0.0.1', () => {
