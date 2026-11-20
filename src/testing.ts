@@ -62,6 +62,15 @@ function object(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw Error('Invalid THS response.');
   return value as Record<string, unknown>;
 }
+/** THS explains rejections in `{ error: { message } }`; anything else leaves only the status. */
+async function apiError(response: Response): Promise<string> {
+  try {
+    const message = (await response.json() as { error?: { message?: unknown } } | null)?.error?.message;
+    return typeof message === 'string' && message ? `: ${message.slice(0, 500)}` : '';
+  } catch {
+    return '';
+  }
+}
 function integer(value: number, max: number): void {
   if (!Number.isSafeInteger(value) || value < 1 || value > max) throw Error(`Expected an integer from 1 to ${max}.`);
 }
@@ -117,10 +126,7 @@ export function createTestTHSClient(options: TestTHSOptions = {}): TestTHSClient
         : { method: 'POST',
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify(body) }) });
-    if (!response.ok) {
-      await response.body?.cancel();
-      throw Error(`THS API returned HTTP ${response.status}.`);
-    }
+    if (!response.ok) throw Error(`THS API returned HTTP ${response.status}${await apiError(response)}.`);
     const data: unknown = await response.json();
     alive(current);
     return data;

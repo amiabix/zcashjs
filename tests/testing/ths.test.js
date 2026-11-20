@@ -90,7 +90,7 @@ test('spawn errors and process errors are observable', async () => {
 });
 test('mutation API errors are observable', async t => {
   const ths = client('api-error'); t.after(() => ths.stop()); await ths.start();
-  await assert.rejects(ths.produceBlock(1), /500/);
+  await assert.rejects(ths.produceBlock(1), /HTTP 400: fixture mutation rejected\./);
 });
 test('testing is a Node-only conditional export without a browser-root import', async () => {
   const manifest = JSON.parse(await readFile(new URL('../../package.json', import.meta.url)));
